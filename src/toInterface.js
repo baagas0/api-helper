@@ -50,29 +50,37 @@ function pluralToSingular(name) {
 function capitalize(name) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
-function formatKeysToOptional(content, optionalKeys) {
-  let result = JSON.stringify(content, null, 2)
-    .replace(/"/g, "")
-    .replace(/,/g, "");
-  Object.keys(content).forEach((key) => {
-    const keyRegex = new RegExp(`${key}:`, "g");
-    result = optionalKeys.includes(key)
-      ? result.replace(keyRegex, `${key}?:`)
-      : result.replace(keyRegex, `${key}:`);
-  });
-  return result;
-}
 function formatInlineObject(obj, optionalKeys = []) {
   if (!obj || typeof obj !== 'object') return '{}';
   
   const entries = Object.entries(obj)
     .map(([key, value]) => {
       const optionalModifier = optionalKeys.includes(key) ? '?' : '';
-      return `${key}${optionalModifier}: ${value}`;
+      // Add quotes around keys containing hyphens
+      const formattedKey = key.includes('-') ? `'${key}'` : key;
+      return `${formattedKey}${optionalModifier}: ${value}`;
     })
     .join('; ');
   
   return `{ ${entries} }`;
+}
+
+function formatKeysToOptional(content, optionalKeys) {
+  let result = JSON.stringify(content, null, 2)
+    .replace(/"/g, "")
+    .replace(/,/g, "");
+  
+  Object.keys(content).forEach((key) => {
+    // Format key with quotes if it contains a hyphen
+    const formattedKey = key.includes('-') ? `'${key}'` : key;
+    const keyRegex = new RegExp(`${key}:`, "g");
+    
+    result = optionalKeys.includes(key)
+      ? result.replace(keyRegex, `${formattedKey}?:`)
+      : result.replace(keyRegex, `${formattedKey}:`);
+  });
+  
+  return result;
 }
 
 function parseInlineObject(obj, parentName = "", key = "", seen = new Set()) {

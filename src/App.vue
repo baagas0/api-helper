@@ -85,7 +85,7 @@ import { convertJsonToTs } from "./toInterface";
 const fnName = ref("essence");
 const curlCommand = ref(`curl --location --request POST 'http://192.168.1.106:8888/api/prediction/tarot' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.U2FsdGVkX18e9/Fh1z3PjIlV2nmNy23Lut6x5dZDETomNkF6bB80dhCFKVXvb7XP/ClDWadOTkDmXUocpEFmIJxjEf+gPODwnu/+91/Zpa/0PMQ3sRAUpOp/E5bKm1RFOfuP9H4JTDWMs26BcLQ2bEpOpzECt3TPShNPJVemsoswZfFkdWPDRZ+vVPRMxkKmoD8cF5uMP07SWHcBC0Iv+RTLHkYHkssC6N60rdm6GsJp//Hk7Audq0cpJ6PJx6flS71Tm546jJL4XduVWw4WlY2RnxjIhrFi2Vng2aA2MiN4O5XXspKgUJogbTtgitZ2.4PYaXiL5loB5rvAoRnsKlpjkxG9Uetrkgra2SPFaaD4' \
+--header 'Authorization: Bearer asdasd' \
 --data '{
     "question":"halo apa kabar?",
     "shuffled_amount":1,
