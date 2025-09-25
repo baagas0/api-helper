@@ -10,8 +10,19 @@
       <div class="grid" style="align-content:start">
         <div class="grid">
           <div>
-            <label>Nama Fungsi</label>
-            <input v-model="fnName" placeholder="mis. fetchReports" />
+            <div class="checkbox-container">
+              <label>
+                <input type="checkbox" v-model="fullCode" />
+                Full code?
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Nama Fungsi</label>
+              <input v-model="fnName" placeholder="mis. fetchReports" />
+            </div>
+            
           </div>
           <div>
             <label>CURL Command</label>
@@ -26,7 +37,13 @@
           <button class="btn" :disabled="loading" @click="handleSubmit">
             {{ loading ? "Loading..." : "Submit" }}
           </button>
-          <pre>{{ baseCode }}</pre>
+          <button 
+            v-if="resultCode" 
+            class="btn secondary" 
+            @click="downloadCode"
+          >
+            <span class="material-icons">download</span> Download
+          </button>
         </div>
       </div>
 
@@ -47,7 +64,10 @@
           </div>
         </div>
         <pre class="code" style="height: 100px;">{{ result }}</pre>
-        <pre class="code">{{ resultCode }}</pre>
+        <div v-if="resultCode"  class="inline" style="justify-content:space-between">
+          <h3 style="margin:0">Generated Code</h3>
+        </div>
+        <pre v-if="resultCode"  class="code">{{ resultCode }}</pre>
       </div>
     </div>
   </div>
@@ -57,7 +77,7 @@
 // import { convertJsonToTs } from '@typeweaver/json2ts';
 import { ref } from "vue";
 import { makeRequest, parseCurl, baseCode, generateSnakeToCamelMapping } from "./helper";
-import { lowerCase, pascalCase } from 'text-case';
+import { camelCase, lowerCase, pascalCase } from 'text-case';
 import jcc from 'json-case-convertor';
 import { convertJsonToTs } from "./toInterface";
 
@@ -74,8 +94,10 @@ const curlCommand = ref(`curl --location --request POST 'http://192.168.1.106:88
 const status = ref({ text: "", success: false, error: false, loading: false });
 const loading = ref(false);
 
+const fullCode = ref(true);
 const result = ref("// Response akan muncul di sini setelah submit");
 const resultCode = ref("");
+const generatedTitle = ref("");
 
 async function handleSubmit() {
   if (!curlCommand.value) {
@@ -106,29 +128,39 @@ async function handleSubmit() {
       console.log(parsedCurl);
 
       const title = pascalCase(fnName.value || "untitled");
-      const interfacePayload = convertJsonToTs(jcc.camelCaseKeys(parsedCurl.data), title + "Payload");
+      generatedTitle.value = title; // Save the title for download filename
+      const isHavePayload = parsedCurl.data && Object.keys(parsedCurl.data).length > 0;
+      const interfacePayload = isHavePayload ? convertJsonToTs(jcc.camelCaseKeys(parsedCurl.data), title + "Payload") : '';
       const interfaceResponse = convertJsonToTs(res.data.data, title + "Response");
       const interfaceReturn = convertJsonToTs(jcc.camelCaseKeys(res.data.data), title);
       const method = lowerCase(parsedCurl.method || "get");
       const url = parsedCurl.url.split('api')[1];
-      const mappingCode = generateSnakeToCamelMapping(res.data.data);
+      const mappingCode = generateSnakeToCamelMapping(res.data.data, "res.data", 3);
 
       const baseFunc = `
-const ${method}${title} = async (): Promise<${title}> => {
+${fullCode.value ? "import coreHttps, { CoreHttpResponse } from '@/https/core';" : ''}
+
+${interfacePayload}
+
+export ${interfaceResponse}
+
+export ${interfaceReturn}
+
+const ${method}${title} = async (${isHavePayload ? `payload: ${title}Payload` : ''}): Promise<${title}> => {
   try {
-    const res: CoreHttpResponse<${title + "Response"}> = await coreHttps.get(
-      "/m${url}"
+    const res: CoreHttpResponse<${title + "Response"}> = await coreHttps.${method}(
+      "/m${url}",
+      ${isHavePayload ? 'payload' : ''},
     );
     return {
-      ${mappingCode}
+${mappingCode}
     };
   } catch (error: unknown) {
     throw error;
   }
 };
-
-      `;
-      resultCode.value = `${interfacePayload}\nexport ${interfaceResponse}\nexport ${interfaceReturn}\n\n${baseFunc}`;
+`;
+      resultCode.value = `${baseFunc}`;
     } else {
       status.value = { text: "Error", error: true };
       result.value = JSON.stringify(
@@ -143,6 +175,31 @@ const ${method}${title} = async (): Promise<${title}> => {
   } finally {
     loading.value = false;
   }
+}
+
+/**
+ * Downloads the generated code as a TypeScript file
+ */
+function downloadCode() {
+  if (!resultCode.value) return;
+  
+  const fileName = `${camelCase(fnName.value || 'untitled')}.ts`;
+  const fileContent = resultCode.value;
+  
+  // Create a blob with the file content
+  const blob = new Blob([fileContent], { type: 'text/typescript' });
+  const url = URL.createObjectURL(blob);
+  
+  // Create a download link and trigger it
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  
+  // Clean up
+  URL.revokeObjectURL(url);
+  document.body.removeChild(link);
 }
 </script>
 
@@ -169,4 +226,23 @@ textarea { resize: vertical; min-height: 150px; font-family: ui-monospace, SFMon
 .loading { opacity: 0.7; }
 .error { color: #ff6b6b; }
 .success { color: #51cf66; }
+.material-icons { font-size: 16px; vertical-align: middle; margin-right: 4px; }
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: auto;
+  margin-right: 6px;
+}
+
+.checkbox-container label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #e6e9f2;
+  font-size: 14px;
+}
 </style>
