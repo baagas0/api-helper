@@ -163,7 +163,7 @@ ${fullCode.value ? "import coreHttps, { CoreHttpResponse } from '@/https/core';"
 
 ${interfacePayload}
 
-export ${interfaceResponse}
+${interfaceResponse}
 
 export ${interfaceReturn}
 
