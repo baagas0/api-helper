@@ -129,11 +129,32 @@ async function handleSubmit() {
 
       const title = pascalCase(fnName.value || "untitled");
       generatedTitle.value = title; // Save the title for download filename
-      const isHavePayload = parsedCurl.data && Object.keys(parsedCurl.data).length > 0;
-      const interfacePayload = isHavePayload ? convertJsonToTs(jcc.camelCaseKeys(parsedCurl.data), title + "Payload") : '';
+      // const isHavePayload = parsedCurl.data && Object.keys(parsedCurl.data).length > 0;
+
+      const method = lowerCase(parsedCurl.method || "get");
+      let payloadData = {};
+      let isHavePayload = false;
+
+      if (method === "get") {
+        // Extract URL parameters for GET requests
+        const urlObj = new URL(parsedCurl.url);
+        const params = Object.fromEntries(urlObj.searchParams.entries());
+        
+        if (Object.keys(params).length > 0) {
+          payloadData = params;
+          isHavePayload = true;
+        }
+      } else {
+        // For non-GET requests, use the request body
+        isHavePayload = parsedCurl.data && Object.keys(parsedCurl.data).length > 0;
+        if (isHavePayload) {
+          payloadData = parsedCurl.data;
+        }
+      }
+
+      const interfacePayload = isHavePayload ? convertJsonToTs(jcc.camelCaseKeys(payloadData), title + "Payload") : '';
       const interfaceResponse = convertJsonToTs(res.data.data, title + "Response");
       const interfaceReturn = convertJsonToTs(jcc.camelCaseKeys(res.data.data), title);
-      const method = lowerCase(parsedCurl.method || "get");
       const url = parsedCurl.url.split('api')[1];
       const mappingCode = generateSnakeToCamelMapping(res.data.data, "res.data", 3);
 

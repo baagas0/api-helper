@@ -154,7 +154,7 @@ export function generateSnakeToCamelMapping(data, prefix = "res?.data", indentLe
   }
   
   // For arrays of objects, generate a map function
-  return `${prefix}.map(item => ({
+  return `${prefix}?.map(item => ({
 ${generateSnakeToCamelMapping(data[0], "item", indentLevel + 1)}
 ${baseIndent}}))`;
 }
