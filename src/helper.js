@@ -133,7 +133,7 @@ export async function makeRequest(parsedCurl) {
  * @param {number} indentLevel - Base indentation level for the generated code
  * @returns {string} - Code that maps snake_case to camelCase properties with proper indentation
  */
-export function generateSnakeToCamelMapping(data, prefix = "res.data", indentLevel = 0) {
+export function generateSnakeToCamelMapping(data, prefix = "res?.data", indentLevel = 0) {
   if (!data || typeof data !== 'object') return '';
   
   // Create indentation strings based on level
@@ -167,16 +167,16 @@ ${baseIndent}}))`;
     // Handle nested objects recursively
     if (data[key] && typeof data[key] === 'object' && !Array.isArray(data[key])) {
       return `${camelKey}: {
-${generateSnakeToCamelMapping(data[key], `${prefix}.${key}`, indentLevel + 2)}
+${generateSnakeToCamelMapping(data[key], `${prefix}?.${key}`, indentLevel + 2)}
 ${propIndent}}`;
     } 
     // Handle arrays
     else if (Array.isArray(data[key]) && data[key].length > 0) {
-      return `${camelKey}: ${generateSnakeToCamelMapping(data[key], `${prefix}.${key}`, indentLevel)}`;
+      return `${camelKey}: ${generateSnakeToCamelMapping(data[key], `${prefix}?.${key}`, indentLevel)}`;
     }
     // Simple property mapping
     else {
-      return `${camelKey}: ${prefix}.${key}`;
+      return `${camelKey}: ${prefix}?.${key}`;
     }
   });
   
