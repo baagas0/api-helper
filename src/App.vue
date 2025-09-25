@@ -159,6 +159,13 @@ ${mappingCode}
     throw error;
   }
 };
+
+const ${title}Api = {
+  ${method}${title}
+};
+
+export default ${title}Api;
+
 `;
       resultCode.value = `${baseFunc}`;
     } else {
