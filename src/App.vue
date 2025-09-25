@@ -47,8 +47,7 @@
           </div>
         </div>
         <pre class="code" style="height: 100px;">{{ result }}</pre>
-        
-        <pre>{{ resultCode }}</pre>
+        <pre class="code">{{ resultCode }}</pre>
       </div>
     </div>
   </div>
@@ -57,7 +56,7 @@
 <script setup>
 // import { convertJsonToTs } from '@typeweaver/json2ts';
 import { ref } from "vue";
-import { makeRequest, parseCurl, baseCode } from "./helper";
+import { makeRequest, parseCurl, baseCode, generateSnakeToCamelMapping } from "./helper";
 import { lowerCase, pascalCase } from 'text-case';
 import jcc from 'json-case-convertor';
 import { convertJsonToTs } from "./toInterface";
@@ -112,6 +111,8 @@ async function handleSubmit() {
       const interfaceReturn = convertJsonToTs(jcc.camelCaseKeys(res.data.data), title);
       const method = lowerCase(parsedCurl.method || "get");
       const url = parsedCurl.url.split('api')[1];
+      const mappingCode = generateSnakeToCamelMapping(res.data.data);
+
       const baseFunc = `
 const ${method}${title} = async (): Promise<${title}> => {
   try {
@@ -119,12 +120,7 @@ const ${method}${title} = async (): Promise<${title}> => {
       "/m${url}"
     );
     return {
-      horoscope: res.data.horoscope,
-      zodiac: res.data.zodiac,
-      baziBoneWeight: res.data.bazi_bone_weight,
-      bonePhysiognomy: res.data.bone_physiognomy,
-      mahaboteHouse: res.data.mahabote_house,
-      mahabotePlanet: res.data.mahabote_planet,
+      ${mappingCode}
     };
   } catch (error: unknown) {
     throw error;

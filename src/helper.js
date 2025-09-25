@@ -117,3 +117,68 @@ export async function makeRequest(parsedCurl) {
     };
   }
 }
+
+/**
+ * Generates mapping code from snake_case API response to camelCase properties
+ * @param {Object} data - The API response data object with snake_case keys
+ * @param {string} prefix - The object prefix in the code (e.g., "res.data")
+ * @returns {string} - Code that maps snake_case to camelCase properties
+ */
+/**
+ * Generates mapping code from snake_case API response to camelCase properties
+ * with proper indentation
+ * 
+ * @param {Object} data - The API response data object with snake_case keys
+ * @param {string} prefix - The object prefix in the code (e.g., "res.data")
+ * @param {number} indentLevel - Base indentation level for the generated code
+ * @returns {string} - Code that maps snake_case to camelCase properties with proper indentation
+ */
+export function generateSnakeToCamelMapping(data, prefix = "res.data", indentLevel = 0) {
+  if (!data || typeof data !== 'object') return '';
+  
+  // Create indentation strings based on level
+  const baseIndent = '  '.repeat(indentLevel);
+  const propIndent = '  '.repeat(indentLevel + 1);
+  const nestedIndent = '  '.repeat(indentLevel + 2);
+  
+  // For arrays, use the first item as a template if it exists
+  if (Array.isArray(data)) {
+  if (data.length === 0) return '';
+  
+  // Check if array contains primitive values
+  if (data[0] === null || 
+      typeof data[0] !== 'object' || 
+      data[0] instanceof Date) {
+    // For primitive arrays, just reference the array directly
+    return `${prefix}`;
+  }
+  
+  // For arrays of objects, generate a map function
+  return `${prefix}.map(item => ({
+${generateSnakeToCamelMapping(data[0], "item", indentLevel + 1)}
+${baseIndent}}))`;
+}
+  
+  // Process object properties
+  const mappings = Object.keys(data).map(key => {
+    // Convert snake_case to camelCase
+    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    
+    // Handle nested objects recursively
+    if (data[key] && typeof data[key] === 'object' && !Array.isArray(data[key])) {
+      return `${camelKey}: {
+${generateSnakeToCamelMapping(data[key], `${prefix}.${key}`, indentLevel + 2)}
+${propIndent}}`;
+    } 
+    // Handle arrays
+    else if (Array.isArray(data[key]) && data[key].length > 0) {
+      return `${camelKey}: ${generateSnakeToCamelMapping(data[key], `${prefix}.${key}`, indentLevel)}`;
+    }
+    // Simple property mapping
+    else {
+      return `${camelKey}: ${prefix}.${key}`;
+    }
+  });
+  
+  return mappings.map(mapping => `${propIndent}${mapping}`).join(',\n');
+}
