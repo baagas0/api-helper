@@ -153,10 +153,10 @@ async function handleSubmit() {
       }
 
       const interfacePayload = isHavePayload ? convertJsonToTs(jcc.camelCaseKeys(payloadData), title + "Payload") : '';
-      const interfaceResponse = convertJsonToTs(res.data.data, title + "Response");
-      const interfaceReturn = convertJsonToTs(jcc.camelCaseKeys(res.data.data), title);
+      const interfaceResponse = convertJsonToTs(res.data.result, title + "Response");
+      const interfaceReturn = convertJsonToTs(jcc.camelCaseKeys(res.data.result), title);
       const url = parsedCurl.url.split('api')[1];
-      const mappingCode = generateSnakeToCamelMapping(res.data.data, "res.data", 3);
+      const mappingCode = generateSnakeToCamelMapping(res.data.result, "res.data", 3);
 
       const baseFunc = `
 ${fullCode.value ? "import coreHttps, { CoreHttpResponse } from '@/https/core';" : ''}
