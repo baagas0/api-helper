@@ -22,7 +22,12 @@
               <label>Nama Fungsi</label>
               <input v-model="fnName" placeholder="mis. fetchReports" />
             </div>
-            
+            <div>
+              <input type="radio" id="data" value="data" v-model="resultKey" />
+              <label for="data">data</label>
+              <input type="radio" id="result" value="result" v-model="resultKey" />
+              <label for="result">result</label>
+            </div>
           </div>
           <div>
             <label>CURL Command</label>
@@ -95,6 +100,7 @@ const status = ref({ text: "", success: false, error: false, loading: false });
 const loading = ref(false);
 
 const fullCode = ref(true);
+const resultKey = ref('data');
 const result = ref("// Response akan muncul di sini setelah submit");
 const resultCode = ref("");
 const generatedTitle = ref("");
@@ -153,10 +159,10 @@ async function handleSubmit() {
       }
 
       const interfacePayload = isHavePayload ? convertJsonToTs(jcc.camelCaseKeys(payloadData), title + "Payload") : '';
-      const interfaceResponse = convertJsonToTs(res.data.result, title + "Response");
-      const interfaceReturn = convertJsonToTs(jcc.camelCaseKeys(res.data.result), title);
+      const interfaceResponse = convertJsonToTs(res.data[resultKey.value], title + "Response");
+      const interfaceReturn = convertJsonToTs(jcc.camelCaseKeys(res.data[resultKey.value]), title);
       const url = parsedCurl.url.split('api')[1];
-      const mappingCode = generateSnakeToCamelMapping(res.data.result, "res.data", 3);
+      const mappingCode = generateSnakeToCamelMapping(res.data[resultKey.value], "res.data", 3);
 
       const baseFunc = `
 ${fullCode.value ? "import coreHttps, { CoreHttpResponse } from '@/https/core';" : ''}
